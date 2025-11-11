@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "codegen.h"
 
 void yyerror(char *s);
 int yylex(void);
@@ -16,42 +17,15 @@ int yylex(void);
 
 %%
 program:
-    expr { 
-        printf("  ldr x0, [sp], #16\n");
-    }
-    ;
+    expr { codegen_finish(); };
 
 expr:
-    NUMBER {
-        printf("  mov x0, #%d\n", $1);
-        printf("  str x0, [sp, #-16]!\n");
-    }
-    | expr ADD expr {
-        printf("  ldr x1, [sp], #16\n");
-        printf("  ldr x0, [sp], #16\n");
-        printf("  add x0, x0, x1\n");
-        printf("  str x0, [sp, #-16]!\n");
-    }
-    | expr SUB expr {
-        printf("  ldr x1, [sp], #16\n");
-        printf("  ldr x0, [sp], #16\n");
-        printf("  sub x0, x0, x1\n");
-        printf("  str x0, [sp, #-16]!\n");
-    }
-    | expr MUL expr {
-        printf("  ldr x1, [sp], #16\n");
-        printf("  ldr x0, [sp], #16\n");
-        printf("  mul x0, x0, x1\n");
-        printf("  str x0, [sp, #-16]!\n");
-    }
-    | expr DIV expr {
-        printf("  ldr x1, [sp], #16\n");
-        printf("  ldr x0, [sp], #16\n");
-        printf("  sdiv x0, x0, x1\n");
-        printf("  str x0, [sp, #-16]!\n");
-    }
-    | LPAREN expr RPAREN
-    ;
+    NUMBER { codegen_number($1); }
+    | expr ADD expr { codegen_add(); }
+    | expr SUB expr { codegen_sub(); }
+    | expr MUL expr { codegen_mul(); }
+    | expr DIV expr { codegen_div(); }
+    | LPAREN expr RPAREN;
 %%
 
 void yyerror(char *s) {
