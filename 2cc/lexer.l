@@ -1,9 +1,12 @@
 %{
+#include <stdio.h>
+#include <stdlib.h>
+#include "ast.h"
 #include "parser.tab.h"
 %}
 
 %%
-[0-9]+      { yylval = atoi(yytext); return NUMBER; }
+[0-9]+      { yylval.number = atoi(yytext); return NUMBER; }
 "+"         { return ADD; }
 "-"         { return SUB; }
 "*"         { return MUL; }

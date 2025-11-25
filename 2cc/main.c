@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "parser.h"
+#include "codegen.h"
+#include "ast.h"
 
 extern void yy_scan_string(const char *str);
+extern ASTNode *root;
 
 int main(int argc, char **argv) {
     if (argc != 2) {
@@ -18,6 +21,12 @@ int main(int argc, char **argv) {
 
     yy_scan_string(argv[1]);
     yyparse();
+
+    if (root) {
+        codegen_from_ast(root);
+        codegen_finish();
+        ast_free(root);
+    }
 
     printf("  ldp x29, x30, [sp], #16\n");
     printf("  ret\n");

@@ -1,11 +1,18 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "codegen.h"
+#include "ast.h"
 
 void yyerror(char *s);
 int yylex(void);
+
+ASTNode *root = NULL;
 %}
+
+%union {
+    int number;
+    ASTNode *node;
+}
 
 %token NUMBER
 %token ADD SUB MUL DIV
@@ -15,17 +22,20 @@ int yylex(void);
 %left MUL DIV
 %nonassoc UNARY
 
+%type <node> expr
+%type <number> NUMBER
+
 %%
 program:
-    expr { codegen_finish(); };
+    expr { root = $1; };
 
 expr:
-    NUMBER { codegen_number($1); }
-    | expr ADD expr { codegen_add(); }
-    | expr SUB expr { codegen_sub(); }
-    | expr MUL expr { codegen_mul(); }
-    | expr DIV expr { codegen_div(); }
-    | LPAREN expr RPAREN;
+    NUMBER { $$ = ast_number($1); }
+    | expr ADD expr { $$ = ast_binary(OP_ADD, $1, $3); }
+    | expr SUB expr { $$ = ast_binary(OP_SUB, $1, $3); }
+    | expr MUL expr { $$ = ast_binary(OP_MUL, $1, $3); }
+    | expr DIV expr { $$ = ast_binary(OP_DIV, $1, $3); }
+    | LPAREN expr RPAREN { $$ = $2; };
 %%
 
 void yyerror(char *s) {
