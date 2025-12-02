@@ -5,6 +5,7 @@
 #include "symtab.h"
 
 extern SymbolTable *global_symtab;
+extern int stack_depth;
 
 void codegen_from_ast(ASTNode *node);
 void codegen_finish(void);

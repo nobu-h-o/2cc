@@ -4,7 +4,7 @@
 typedef struct {
     char *name;
     int value;
-    int offset;  /* Stack offset from x29 */
+    int offset;
 } Symbol;
 
 typedef struct {

@@ -33,7 +33,7 @@ int symtab_lookup(SymbolTable *table, const char *name) {
 
 int symtab_add(SymbolTable *table, const char *name) {
     if (symtab_lookup(table, name) >= 0) {
-        return -1;  /* Variable already exists */
+        return -1;
     }
 
     if (table->count >= table->capacity) {
@@ -44,7 +44,7 @@ int symtab_add(SymbolTable *table, const char *name) {
     table->symbols[table->count].name = strdup(name);
     table->symbols[table->count].value = 0;
     table->symbols[table->count].offset = table->stack_offset;
-    table->stack_offset += 16;  /* Each variable takes 16 bytes on stack */
+    table->stack_offset += 4;
 
     return table->count++;
 }
@@ -61,7 +61,7 @@ int symtab_get(SymbolTable *table, const char *name) {
     if (idx >= 0) {
         return table->symbols[idx].value;
     }
-    return 0;  /* Default value */
+    return 0;
 }
 
 int symtab_get_offset(SymbolTable *table, const char *name) {

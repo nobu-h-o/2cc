@@ -8,6 +8,7 @@
 extern void yy_scan_string(const char *str);
 extern ASTNode *root;
 extern SymbolTable *global_symtab;
+extern int stack_depth;
 
 int main(int argc, char **argv) {
     if (argc != 2) {
@@ -25,13 +26,12 @@ int main(int argc, char **argv) {
     yyparse();
 
     if (root) {
-        /* Emit prologue */
         printf("  stp x29, x30, [sp, #-16]!\n");
         printf("  mov x29, sp\n");
 
-        /* Allocate generous space for variables and work stack */
         printf("  sub sp, sp, #256\n");
 
+        stack_depth = 0;
         codegen_from_ast(root);
         codegen_finish();
 

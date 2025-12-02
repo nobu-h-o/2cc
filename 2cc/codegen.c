@@ -4,56 +4,64 @@
 #include "symtab.h"
 
 SymbolTable *global_symtab = NULL;
+int stack_depth = 0;
 
 static void codegen_number(int value) {
-    printf("  mov x0, #%d\n", value);
-    printf("  str x0, [sp, #-16]!\n");
+    printf("  mov w0, #%d\n", value);
+    printf("  str w0, [sp, %d]\n", stack_depth);
+    stack_depth += 4;
 }
 
 static void codegen_add(void) {
-    printf("  ldr x1, [sp], #16\n");
-    printf("  ldr x0, [sp], #16\n");
-    printf("  add x0, x0, x1\n");
-    printf("  str x0, [sp, #-16]!\n");
+    stack_depth -= 8;
+    printf("  ldr w1, [sp, %d]\n", stack_depth + 4);
+    printf("  ldr w0, [sp, %d]\n", stack_depth);
+    printf("  add w0, w0, w1\n");
+    printf("  str w0, [sp, %d]\n", stack_depth);
+    stack_depth += 4;
 }
 
 static void codegen_sub(void) {
-    printf("  ldr x1, [sp], #16\n");
-    printf("  ldr x0, [sp], #16\n");
-    printf("  sub x0, x0, x1\n");
-    printf("  str x0, [sp, #-16]!\n");
+    stack_depth -= 8;
+    printf("  ldr w1, [sp, %d]\n", stack_depth + 4);
+    printf("  ldr w0, [sp, %d]\n", stack_depth);
+    printf("  sub w0, w0, w1\n");
+    printf("  str w0, [sp, %d]\n", stack_depth);
+    stack_depth += 4;
 }
 
 static void codegen_mul(void) {
-    printf("  ldr x1, [sp], #16\n");
-    printf("  ldr x0, [sp], #16\n");
-    printf("  mul x0, x0, x1\n");
-    printf("  str x0, [sp, #-16]!\n");
+    stack_depth -= 8;
+    printf("  ldr w1, [sp, %d]\n", stack_depth + 4);
+    printf("  ldr w0, [sp, %d]\n", stack_depth);
+    printf("  mul w0, w0, w1\n");
+    printf("  str w0, [sp, %d]\n", stack_depth);
+    stack_depth += 4;
 }
 
 static void codegen_div(void) {
-    printf("  ldr x1, [sp], #16\n");
-    printf("  ldr x0, [sp], #16\n");
-    printf("  sdiv x0, x0, x1\n");
-    printf("  str x0, [sp, #-16]!\n");
+    stack_depth -= 8;
+    printf("  ldr w1, [sp, %d]\n", stack_depth + 4);
+    printf("  ldr w0, [sp, %d]\n", stack_depth);
+    printf("  sdiv w0, w0, w1\n");
+    printf("  str w0, [sp, %d]\n", stack_depth);
+    stack_depth += 4;
 }
 
 static void codegen_variable(const char *name) {
     int offset = symtab_get_offset(global_symtab, name);
-    printf("  ldr x0, [x29, #%d]\n", -(16 + offset));
-    printf("  str x0, [sp, #-16]!\n");
+    printf("  ldr w0, [x29, #%d]\n", -(4 + offset));
+    printf("  str w0, [sp, %d]\n", stack_depth);
+    stack_depth += 4;
 }
 
 static void codegen_assignment(const char *name, ASTNode *value) {
-    if (symtab_lookup(global_symtab, name) < 0) {
-        symtab_add(global_symtab, name);
-    }
-
     codegen_from_ast(value);
 
     int offset = symtab_get_offset(global_symtab, name);
-    printf("  ldr x0, [sp], #16\n");
-    printf("  str x0, [x29, #%d]\n", -(16 + offset));
+    stack_depth -= 4;  /* Pop the result */
+    printf("  ldr w0, [sp, %d]\n", stack_depth);
+    printf("  str w0, [x29, #%d]\n", -(4 + offset));
 }
 
 void codegen_from_ast(ASTNode *node) {
@@ -99,5 +107,7 @@ void codegen_from_ast(ASTNode *node) {
 }
 
 void codegen_finish(void) {
-    printf("  ldr x0, [sp], #16\n");
+    if (stack_depth >= 4) {
+        printf("  ldr w0, [sp, %d]\n", stack_depth - 4);
+    }
 }
