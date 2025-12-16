@@ -18,6 +18,28 @@ int main(int argc, char **argv) {
 
     global_symtab = symtab_create();
 
+    printf(".text\n");
+    printf(".p2align 2\n");
+    printf(".LC0:\n");
+    printf("  .string \"%%d\\n\"\n");
+    printf(".text\n");
+    printf(".p2align 2\n");
+    printf("put_int:\n");
+    printf("  sub sp, sp, #32\n");
+    printf("  stp x29, x30, [sp, #16]\n");
+    printf("  add x29, sp, #16\n");
+    printf("  stur w0, [x29, #-4]\n");
+    printf("  ldur w9, [x29, #-4]\n");
+    printf("  mov x8, x9\n");
+    printf("  adrp x0, .LC0@PAGE\n");
+    printf("  add x0, x0, .LC0@PAGEOFF\n");
+    printf("  mov x9, sp\n");
+    printf("  str x8, [x9]\n");
+    printf("  bl _printf\n");
+    printf("  ldp x29, x30, [sp, #16]\n");
+    printf("  add sp, sp, #32\n");
+    printf("  ret\n");
+
     printf(".global _main\n");
     printf(".align 2\n");
     printf("_main:\n");

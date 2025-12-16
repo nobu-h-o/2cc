@@ -20,7 +20,7 @@ extern SymbolTable *global_symtab;
 %token NUMBER
 %token IDENTIFIER
 %token ASSIGN SEMICOLON
-%token RETURN WHILE FOR
+%token RETURN WHILE FOR PRINT
 %token ADD SUB MUL DIV
 %token LPAREN RPAREN LBRACE RBRACE
 %token LT GT LE GE EQ NE
@@ -59,6 +59,7 @@ statement:
         $$ = ast_assignment($1, $3);
     }
     | RETURN expr SEMICOLON { $$ = ast_return($2); }
+    | PRINT LPAREN expr RPAREN SEMICOLON { $$ = ast_print($3); }
     | expr SEMICOLON { $$ = $1; }
     | WHILE LPAREN expr RPAREN LBRACE statements RBRACE {
         $$ = ast_while($3, $6);

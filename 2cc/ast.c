@@ -66,6 +66,13 @@ ASTNode* ast_for(ASTNode *init, ASTNode *condition, ASTNode *increment, ASTNode 
     return node;
 }
 
+ASTNode* ast_print(ASTNode *value) {
+    ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
+    node->type = AST_PRINT;
+    node->data.print_value = value;
+    return node;
+}
+
 void ast_free(ASTNode *node) {
     if (!node) return;
 
@@ -90,6 +97,8 @@ void ast_free(ASTNode *node) {
         ast_free(node->data.for_loop.condition);
         ast_free(node->data.for_loop.increment);
         ast_free(node->data.for_loop.body);
+    } else if (node->type == AST_PRINT) {
+        ast_free(node->data.print_value);
     }
 
     free(node);

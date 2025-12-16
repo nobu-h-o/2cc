@@ -10,6 +10,7 @@
 "return"    { return RETURN; }
 "while"     { return WHILE; }
 "for"       { return FOR; }
+"print"     { return PRINT; }
 [0-9]+      { yylval.number = atoi(yytext); return NUMBER; }
 [a-zA-Z_][a-zA-Z0-9_]* { yylval.string = strdup(yytext); return IDENTIFIER; }
 "="         { return ASSIGN; }

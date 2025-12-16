@@ -112,6 +112,13 @@ static void codegen_for(ASTNode *init, ASTNode *condition, ASTNode *increment, A
     printf("L%d:\n", end_label);
 }
 
+static void codegen_print(ASTNode *value) {
+    codegen_from_ast(value);
+    stack_depth -= 4;
+    printf("  ldr w0, [sp, %d]\n", stack_depth);
+    printf("  bl put_int\n");
+}
+
 void codegen_from_ast(ASTNode *node) {
     if (!node) return;
 
@@ -175,6 +182,9 @@ void codegen_from_ast(ASTNode *node) {
         case AST_FOR:
             codegen_for(node->data.for_loop.init, node->data.for_loop.condition,
                        node->data.for_loop.increment, node->data.for_loop.body);
+            break;
+        case AST_PRINT:
+            codegen_print(node->data.print_value);
             break;
     }
 }

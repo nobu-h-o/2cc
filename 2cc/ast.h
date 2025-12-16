@@ -10,6 +10,7 @@ typedef enum {
     AST_SEQUENCE,
     AST_WHILE,
     AST_FOR,
+    AST_PRINT,
 } ASTNodeType;
 
 typedef enum {
@@ -54,6 +55,7 @@ typedef struct ASTNode {
             struct ASTNode *increment;
             struct ASTNode *body;
         } for_loop;
+        struct ASTNode *print_value;
     } data;
 } ASTNode;
 
@@ -65,6 +67,7 @@ ASTNode* ast_return(ASTNode *value);
 ASTNode* ast_sequence(ASTNode *first, ASTNode *second);
 ASTNode* ast_while(ASTNode *condition, ASTNode *body);
 ASTNode* ast_for(ASTNode *init, ASTNode *condition, ASTNode *increment, ASTNode *body);
+ASTNode* ast_print(ASTNode *value);
 void ast_free(ASTNode *node);
 
 #endif /* AST_H */
