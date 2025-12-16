@@ -5,22 +5,16 @@
 #include "ast.h"
 #include "symtab.h"
 
-typedef struct GlobalVar {
-    char *name;
-    int value;
-    struct GlobalVar *next;
-} GlobalVar;
-
 SymbolTable *global_symtab = NULL;
 int stack_depth = 0;
 static int label_counter = 0;
 static SymbolTable *current_symtab = NULL;
 static int current_local_vars = 0;
 static int current_function_end_label = -1;
-static GlobalVar *global_vars = NULL;
+static GlobalVar *current_globals = NULL;
 
 static int is_global_var(const char *name) {
-    GlobalVar *current = global_vars;
+    GlobalVar *current = current_globals;
     while (current) {
         if (strcmp(current->name, name) == 0) {
             return 1;
@@ -28,14 +22,6 @@ static int is_global_var(const char *name) {
         current = current->next;
     }
     return 0;
-}
-
-static void add_global_var(const char *name, int value) {
-    GlobalVar *new_var = (GlobalVar *)malloc(sizeof(GlobalVar));
-    new_var->name = strdup(name);
-    new_var->value = value;
-    new_var->next = global_vars;
-    global_vars = new_var;
 }
 
 static void codegen_number(int value) {
@@ -201,18 +187,8 @@ static void codegen_function_def(char *name, ParamList *params, ASTNode *body) {
     // Count and register parameters
     int param_count = param_list_count(params);
 
-    // Reverse the parameter list to get correct order
-    ParamList *reversed_params = NULL;
+    // Add parameters to local symbol table
     ParamList *temp = params;
-    while (temp) {
-        ParamList *next = temp->next;
-        temp->next = reversed_params;
-        reversed_params = temp;
-        temp = next;
-    }
-
-    // Add parameters to local symbol table in correct order
-    temp = reversed_params;
     while (temp) {
         symtab_add_parameter(current_symtab, temp->name);
         temp = temp->next;
@@ -231,7 +207,7 @@ static void codegen_function_def(char *name, ParamList *params, ASTNode *body) {
     // Save parameters from registers to stack
     // First 8 parameters come in w0-w7
     int param_idx = 0;
-    temp = reversed_params;
+    temp = params;
     while (temp && param_idx < 8) {
         int offset = symtab_get_offset(current_symtab, temp->name);
         printf("  str w%d, [x29, #%d]\n", param_idx, -(4 + offset));
@@ -271,29 +247,15 @@ static void codegen_function_call(char *name, ArgList *args) {
     // Count arguments
     int arg_count = arg_list_count(args);
 
-    // Reverse argument list to evaluate in correct order
-    ArgList *reversed_args = NULL;
-    ArgList *temp = args;
-    while (temp) {
-        ArgList *next = temp->next;
-        temp->next = reversed_args;
-        reversed_args = temp;
-        temp = next;
-    }
-
-    // Evaluate arguments and store them
-    int arg_idx = 0;
-    temp = reversed_args;
-    int stack_args_size = 0;
-
     // Calculate space needed for stack arguments (beyond 8)
+    int stack_args_size = 0;
     if (arg_count > 8) {
         stack_args_size = (arg_count - 8) * 4;
     }
 
     // Evaluate all arguments first and save them temporarily
     int saved_stack_depth = stack_depth;
-    temp = reversed_args;
+    ArgList *temp = args;
     while (temp) {
         codegen_from_ast(temp->expr);
         temp = temp->next;
@@ -332,38 +294,10 @@ static void codegen_function_call(char *name, ArgList *args) {
     // Return value is in w0, push it on our stack
     printf("  str w0, [sp, %d]\n", stack_depth);
     stack_depth += 4;
-
-    // Restore argument list order
-    args = reversed_args;
-    reversed_args = NULL;
-    temp = args;
-    while (temp) {
-        ArgList *next = temp->next;
-        temp->next = reversed_args;
-        reversed_args = temp;
-        temp = next;
-    }
-}
-
-static void collect_globals_from_ast(ASTNode *node) {
-    if (!node) return;
-
-    if (node->type == AST_GLOBAL_VAR) {
-        // Extract constant value if it's a simple number
-        int init_value = 0;
-        if (node->data.global_var.value && node->data.global_var.value->type == AST_NUMBER) {
-            init_value = node->data.global_var.value->data.number;
-        }
-        add_global_var(node->data.global_var.name, init_value);
-    } else if (node->type == AST_SEQUENCE) {
-        collect_globals_from_ast(node->data.sequence.first);
-        collect_globals_from_ast(node->data.sequence.second);
-    }
-    // Don't recurse into function bodies or other statements
 }
 
 static void codegen_global_var(char *name, ASTNode *value) {
-    // Global variables are handled in the first pass, nothing to do here
+    // Global variables are handled in a separate pass, nothing to do here
 }
 
 void codegen_from_ast(ASTNode *node) {
@@ -460,14 +394,14 @@ void codegen_finish(void) {
     }
 }
 
-void codegen_program(ASTNode *root) {
-    // First pass: collect global variables
-    collect_globals_from_ast(root);
+void codegen_program(ASTNode *root, GlobalVar *globals) {
+    // Store globals for use during code generation
+    current_globals = globals;
 
     // Generate .data section for global variables
-    if (global_vars) {
+    if (globals) {
         printf(".data\n");
-        GlobalVar *current = global_vars;
+        GlobalVar *current = globals;
         while (current) {
             printf(".global _%s\n", current->name);
             printf(".p2align 2\n");

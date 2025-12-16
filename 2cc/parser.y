@@ -71,8 +71,8 @@ param_list:
     IDENTIFIER {
         $$ = param_list_create($1, NULL);
     }
-    | param_list COMMA IDENTIFIER {
-        $$ = param_list_create($3, $1);
+    | IDENTIFIER COMMA param_list {
+        $$ = param_list_create($1, $3);
     };
 
 arg_list_opt:
@@ -83,8 +83,8 @@ arg_list:
     expr {
         $$ = arg_list_create($1, NULL);
     }
-    | arg_list COMMA expr {
-        $$ = arg_list_create($3, $1);
+    | expr COMMA arg_list {
+        $$ = arg_list_create($1, $3);
     };
 
 statements:

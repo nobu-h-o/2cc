@@ -188,3 +188,45 @@ void ast_free(ASTNode *node) {
 
     free(node);
 }
+
+static GlobalVar *global_vars_list = NULL;
+
+static void add_global_var(const char *name, int value) {
+    GlobalVar *new_var = (GlobalVar *)malloc(sizeof(GlobalVar));
+    new_var->name = strdup(name);
+    new_var->value = value;
+    new_var->next = global_vars_list;
+    global_vars_list = new_var;
+}
+
+static void collect_globals(ASTNode *node) {
+    if (!node) return;
+
+    if (node->type == AST_GLOBAL_VAR) {
+        // Extract constant value if it's a simple number
+        int init_value = 0;
+        if (node->data.global_var.value && node->data.global_var.value->type == AST_NUMBER) {
+            init_value = node->data.global_var.value->data.number;
+        }
+        add_global_var(node->data.global_var.name, init_value);
+    } else if (node->type == AST_SEQUENCE) {
+        collect_globals(node->data.sequence.first);
+        collect_globals(node->data.sequence.second);
+    }
+    // Don't recurse into function bodies
+}
+
+GlobalVar* collect_global_vars(ASTNode *root) {
+    global_vars_list = NULL;
+    collect_globals(root);
+    return global_vars_list;
+}
+
+void global_vars_free(GlobalVar *globals) {
+    while (globals) {
+        GlobalVar *next = globals->next;
+        free(globals->name);
+        free(globals);
+        globals = next;
+    }
+}

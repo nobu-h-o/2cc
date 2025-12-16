@@ -53,8 +53,14 @@ int main(int argc, char **argv) {
             }
         }
 
+        // Collect global variables
+        GlobalVar *globals = collect_global_vars(root);
+
         // Generate code for all functions
-        codegen_program(root);
+        codegen_program(root, globals);
+
+        // Free globals
+        global_vars_free(globals);
 
         ast_free(root);
     }

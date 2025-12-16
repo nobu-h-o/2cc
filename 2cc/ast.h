@@ -39,6 +39,12 @@ typedef struct ArgList {
     struct ArgList *next;
 } ArgList;
 
+typedef struct GlobalVar {
+    char *name;
+    int value;
+    struct GlobalVar *next;
+} GlobalVar;
+
 typedef struct ASTNode {
     ASTNodeType type;
     union {
@@ -104,5 +110,9 @@ int arg_list_count(ArgList *args);
 void param_list_free(ParamList *params);
 void arg_list_free(ArgList *args);
 void ast_free(ASTNode *node);
+
+// Global variable collection
+GlobalVar* collect_global_vars(ASTNode *root);
+void global_vars_free(GlobalVar *globals);
 
 #endif /* AST_H */
