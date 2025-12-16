@@ -53,4 +53,37 @@ assert 17 "x=3; y=4; z=5; return x*y+z;"
 assert 17 "x=10; y=7; return x+y;"
 assert 20 "x=5; y=4; return x*y*1;"
 
+# Comparison operators
+assert 1 "return 3 < 5;"
+assert 0 "return 5 < 3;"
+assert 1 "return 5 > 3;"
+assert 0 "return 3 > 5;"
+assert 1 "return 3 <= 3;"
+assert 1 "return 3 <= 5;"
+assert 0 "return 5 <= 3;"
+assert 1 "return 5 >= 5;"
+assert 1 "return 5 >= 3;"
+assert 0 "return 3 >= 5;"
+assert 1 "return 5 == 5;"
+assert 0 "return 5 == 3;"
+assert 1 "return 5 != 3;"
+assert 0 "return 5 != 5;"
+
+# While loops
+assert 10 "x=0; while (x < 10) { x=x+1; } return x;"
+assert 5 "x=0; while (x < 5) { x=x+1; } return x;"
+assert 0 "x=0; while (x < 0) { x=x+1; } return x;"
+assert 55 "sum=0; i=1; while (i <= 10) { sum=sum+i; i=i+1; } return sum;"
+assert 100 "x=0; while (x < 100) { x=x+1; } return x;"
+
+# For loops
+assert 10 "for (x=0; x < 10; x=x+1) { y=x; } return x;"
+assert 15 "sum=0; for (i=1; i <= 5; i=i+1) { sum=sum+i; } return sum;"
+assert 55 "sum=0; for (i=1; i <= 10; i=i+1) { sum=sum+i; } return sum;"
+assert 20 "x=0; for (i=0; i < 4; i=i+1) { x=x+5; } return x;"
+
+# Nested loops
+assert 100 "sum=0; for (i=0; i < 10; i=i+1) { for (j=0; j < 10; j=j+1) { sum=sum+1; } } return sum;"
+assert 25 "sum=0; i=0; while (i < 5) { j=0; while (j < 5) { sum=sum+1; j=j+1; } i=i+1; } return sum;"
+
 echo "All tests succeeded 🎉"

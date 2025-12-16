@@ -48,6 +48,24 @@ ASTNode* ast_sequence(ASTNode *first, ASTNode *second) {
     return node;
 }
 
+ASTNode* ast_while(ASTNode *condition, ASTNode *body) {
+    ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
+    node->type = AST_WHILE;
+    node->data.while_loop.condition = condition;
+    node->data.while_loop.body = body;
+    return node;
+}
+
+ASTNode* ast_for(ASTNode *init, ASTNode *condition, ASTNode *increment, ASTNode *body) {
+    ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
+    node->type = AST_FOR;
+    node->data.for_loop.init = init;
+    node->data.for_loop.condition = condition;
+    node->data.for_loop.increment = increment;
+    node->data.for_loop.body = body;
+    return node;
+}
+
 void ast_free(ASTNode *node) {
     if (!node) return;
 
@@ -64,6 +82,14 @@ void ast_free(ASTNode *node) {
     } else if (node->type == AST_SEQUENCE) {
         ast_free(node->data.sequence.first);
         ast_free(node->data.sequence.second);
+    } else if (node->type == AST_WHILE) {
+        ast_free(node->data.while_loop.condition);
+        ast_free(node->data.while_loop.body);
+    } else if (node->type == AST_FOR) {
+        ast_free(node->data.for_loop.init);
+        ast_free(node->data.for_loop.condition);
+        ast_free(node->data.for_loop.increment);
+        ast_free(node->data.for_loop.body);
     }
 
     free(node);

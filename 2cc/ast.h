@@ -8,6 +8,8 @@ typedef enum {
     AST_ASSIGNMENT,
     AST_RETURN,
     AST_SEQUENCE,
+    AST_WHILE,
+    AST_FOR,
 } ASTNodeType;
 
 typedef enum {
@@ -15,6 +17,12 @@ typedef enum {
     OP_SUB,
     OP_MUL,
     OP_DIV,
+    OP_LT,
+    OP_GT,
+    OP_LE,
+    OP_GE,
+    OP_EQ,
+    OP_NE,
 } BinaryOp;
 
 typedef struct ASTNode {
@@ -36,6 +44,16 @@ typedef struct ASTNode {
             struct ASTNode *first;
             struct ASTNode *second;
         } sequence;
+        struct {
+            struct ASTNode *condition;
+            struct ASTNode *body;
+        } while_loop;
+        struct {
+            struct ASTNode *init;
+            struct ASTNode *condition;
+            struct ASTNode *increment;
+            struct ASTNode *body;
+        } for_loop;
     } data;
 } ASTNode;
 
@@ -45,6 +63,8 @@ ASTNode* ast_variable(char *name);
 ASTNode* ast_assignment(char *name, ASTNode *value);
 ASTNode* ast_return(ASTNode *value);
 ASTNode* ast_sequence(ASTNode *first, ASTNode *second);
+ASTNode* ast_while(ASTNode *condition, ASTNode *body);
+ASTNode* ast_for(ASTNode *init, ASTNode *condition, ASTNode *increment, ASTNode *body);
 void ast_free(ASTNode *node);
 
 #endif /* AST_H */
