@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ast.h"
 #include "symtab.h"
 
@@ -11,15 +12,18 @@ ASTNode *root = NULL;
 extern SymbolTable *global_symtab;
 %}
 
+
 %union {
     int number;
     char *string;
     ASTNode *node;
+    ParamList *params;
+    ArgList *args;
 }
 
 %token NUMBER
 %token IDENTIFIER
-%token ASSIGN SEMICOLON
+%token ASSIGN SEMICOLON COMMA
 %token RETURN WHILE FOR PRINT
 %token ADD SUB MUL DIV
 %token LPAREN RPAREN LBRACE RBRACE
@@ -31,20 +35,56 @@ extern SymbolTable *global_symtab;
 %left MUL DIV
 %nonassoc UNARY
 
-%type <node> expr statement statements
+%type <node> program expr statement statements function_def global_decl toplevel_items toplevel_item
+%type <params> param_list param_list_opt
+%type <args> arg_list arg_list_opt
 %type <number> NUMBER
 %type <string> IDENTIFIER
 
 %%
 program:
-    statements { root = $1; }
-    | expr { root = $1; }
-    | RETURN expr { root = ast_return($2); }
-    | IDENTIFIER ASSIGN expr {
-        if (symtab_lookup(global_symtab, $1) < 0) {
-            symtab_add(global_symtab, $1);
-        }
-        root = ast_assignment($1, $3);
+    toplevel_items { root = $1; $$ = $1; };
+
+toplevel_items:
+    toplevel_item { $$ = $1; }
+    | toplevel_items toplevel_item { $$ = ast_sequence($1, $2); };
+
+toplevel_item:
+    function_def { $$ = $1; }
+    | global_decl { $$ = $1; };
+
+function_def:
+    IDENTIFIER LPAREN param_list_opt RPAREN LBRACE statements RBRACE {
+        $$ = ast_function_def($1, $3, $6);
+    };
+
+global_decl:
+    IDENTIFIER ASSIGN expr SEMICOLON {
+        $$ = ast_global_var($1, $3);
+    };
+
+param_list_opt:
+    /* empty */ { $$ = NULL; }
+    | param_list { $$ = $1; };
+
+param_list:
+    IDENTIFIER {
+        $$ = param_list_create($1, NULL);
+    }
+    | param_list COMMA IDENTIFIER {
+        $$ = param_list_create($3, $1);
+    };
+
+arg_list_opt:
+    /* empty */ { $$ = NULL; }
+    | arg_list { $$ = $1; };
+
+arg_list:
+    expr {
+        $$ = arg_list_create($1, NULL);
+    }
+    | arg_list COMMA expr {
+        $$ = arg_list_create($3, $1);
     };
 
 statements:
@@ -53,9 +93,6 @@ statements:
 
 statement:
     IDENTIFIER ASSIGN expr SEMICOLON {
-        if (symtab_lookup(global_symtab, $1) < 0) {
-            symtab_add(global_symtab, $1);
-        }
         $$ = ast_assignment($1, $3);
     }
     | RETURN expr SEMICOLON { $$ = ast_return($2); }
@@ -65,19 +102,16 @@ statement:
         $$ = ast_while($3, $6);
     }
     | FOR LPAREN statement expr SEMICOLON IDENTIFIER ASSIGN expr RPAREN LBRACE statements RBRACE {
-        if (symtab_lookup(global_symtab, $6) < 0) {
-            symtab_add(global_symtab, $6);
-        }
         $$ = ast_for($3, $4, ast_assignment($6, $8), $11);
     };
 
 expr:
     NUMBER { $$ = ast_number($1); }
     | IDENTIFIER {
-        if (symtab_lookup(global_symtab, $1) < 0) {
-            symtab_add(global_symtab, $1);
-        }
         $$ = ast_variable($1);
+    }
+    | IDENTIFIER LPAREN arg_list_opt RPAREN {
+        $$ = ast_function_call($1, $3);
     }
     | expr ADD expr { $$ = ast_binary(OP_ADD, $1, $3); }
     | expr SUB expr { $$ = ast_binary(OP_SUB, $1, $3); }

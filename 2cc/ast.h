@@ -11,6 +11,9 @@ typedef enum {
     AST_WHILE,
     AST_FOR,
     AST_PRINT,
+    AST_FUNCTION_DEF,
+    AST_FUNCTION_CALL,
+    AST_GLOBAL_VAR,
 } ASTNodeType;
 
 typedef enum {
@@ -25,6 +28,16 @@ typedef enum {
     OP_EQ,
     OP_NE,
 } BinaryOp;
+
+typedef struct ParamList {
+    char *name;
+    struct ParamList *next;
+} ParamList;
+
+typedef struct ArgList {
+    struct ASTNode *expr;
+    struct ArgList *next;
+} ArgList;
 
 typedef struct ASTNode {
     ASTNodeType type;
@@ -56,6 +69,19 @@ typedef struct ASTNode {
             struct ASTNode *body;
         } for_loop;
         struct ASTNode *print_value;
+        struct {
+            char *name;
+            ParamList *params;
+            struct ASTNode *body;
+        } function_def;
+        struct {
+            char *name;
+            ArgList *args;
+        } function_call;
+        struct {
+            char *name;
+            struct ASTNode *value;
+        } global_var;
     } data;
 } ASTNode;
 
@@ -68,6 +94,15 @@ ASTNode* ast_sequence(ASTNode *first, ASTNode *second);
 ASTNode* ast_while(ASTNode *condition, ASTNode *body);
 ASTNode* ast_for(ASTNode *init, ASTNode *condition, ASTNode *increment, ASTNode *body);
 ASTNode* ast_print(ASTNode *value);
+ASTNode* ast_function_def(char *name, ParamList *params, ASTNode *body);
+ASTNode* ast_function_call(char *name, ArgList *args);
+ASTNode* ast_global_var(char *name, ASTNode *value);
+ParamList* param_list_create(char *name, ParamList *next);
+ArgList* arg_list_create(ASTNode *expr, ArgList *next);
+int param_list_count(ParamList *params);
+int arg_list_count(ArgList *args);
+void param_list_free(ParamList *params);
+void arg_list_free(ArgList *args);
 void ast_free(ASTNode *node);
 
 #endif /* AST_H */

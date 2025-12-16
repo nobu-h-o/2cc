@@ -15,6 +15,7 @@
 [a-zA-Z_][a-zA-Z0-9_]* { yylval.string = strdup(yytext); return IDENTIFIER; }
 "="         { return ASSIGN; }
 ";"         { return SEMICOLON; }
+","         { return COMMA; }
 "+"         { return ADD; }
 "-"         { return SUB; }
 "*"         { return MUL; }

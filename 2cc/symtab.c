@@ -42,8 +42,49 @@ int symtab_add(SymbolTable *table, const char *name) {
     }
 
     table->symbols[table->count].name = strdup(name);
+    table->symbols[table->count].type = SYMBOL_VARIABLE;
     table->symbols[table->count].value = 0;
     table->symbols[table->count].offset = table->stack_offset;
+    table->symbols[table->count].param_count = 0;
+    table->stack_offset += 4;
+
+    return table->count++;
+}
+
+int symtab_add_function(SymbolTable *table, const char *name, int param_count) {
+    if (symtab_lookup(table, name) >= 0) {
+        return -1;
+    }
+
+    if (table->count >= table->capacity) {
+        table->capacity *= 2;
+        table->symbols = (Symbol *)realloc(table->symbols, sizeof(Symbol) * table->capacity);
+    }
+
+    table->symbols[table->count].name = strdup(name);
+    table->symbols[table->count].type = SYMBOL_FUNCTION;
+    table->symbols[table->count].value = 0;
+    table->symbols[table->count].offset = 0;
+    table->symbols[table->count].param_count = param_count;
+
+    return table->count++;
+}
+
+int symtab_add_parameter(SymbolTable *table, const char *name) {
+    if (symtab_lookup(table, name) >= 0) {
+        return -1;
+    }
+
+    if (table->count >= table->capacity) {
+        table->capacity *= 2;
+        table->symbols = (Symbol *)realloc(table->symbols, sizeof(Symbol) * table->capacity);
+    }
+
+    table->symbols[table->count].name = strdup(name);
+    table->symbols[table->count].type = SYMBOL_PARAMETER;
+    table->symbols[table->count].value = 0;
+    table->symbols[table->count].offset = table->stack_offset;
+    table->symbols[table->count].param_count = 0;
     table->stack_offset += 4;
 
     return table->count++;
@@ -68,6 +109,22 @@ int symtab_get_offset(SymbolTable *table, const char *name) {
     int idx = symtab_lookup(table, name);
     if (idx >= 0) {
         return table->symbols[idx].offset;
+    }
+    return 0;
+}
+
+SymbolType symtab_get_type(SymbolTable *table, const char *name) {
+    int idx = symtab_lookup(table, name);
+    if (idx >= 0) {
+        return table->symbols[idx].type;
+    }
+    return SYMBOL_VARIABLE;
+}
+
+int symtab_get_param_count(SymbolTable *table, const char *name) {
+    int idx = symtab_lookup(table, name);
+    if (idx >= 0) {
+        return table->symbols[idx].param_count;
     }
     return 0;
 }

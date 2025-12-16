@@ -73,6 +73,81 @@ ASTNode* ast_print(ASTNode *value) {
     return node;
 }
 
+ASTNode* ast_function_def(char *name, ParamList *params, ASTNode *body) {
+    ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
+    node->type = AST_FUNCTION_DEF;
+    node->data.function_def.name = strdup(name);
+    node->data.function_def.params = params;
+    node->data.function_def.body = body;
+    return node;
+}
+
+ASTNode* ast_function_call(char *name, ArgList *args) {
+    ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
+    node->type = AST_FUNCTION_CALL;
+    node->data.function_call.name = strdup(name);
+    node->data.function_call.args = args;
+    return node;
+}
+
+ASTNode* ast_global_var(char *name, ASTNode *value) {
+    ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
+    node->type = AST_GLOBAL_VAR;
+    node->data.global_var.name = strdup(name);
+    node->data.global_var.value = value;
+    return node;
+}
+
+ParamList* param_list_create(char *name, ParamList *next) {
+    ParamList *param = (ParamList *)malloc(sizeof(ParamList));
+    param->name = strdup(name);
+    param->next = next;
+    return param;
+}
+
+ArgList* arg_list_create(ASTNode *expr, ArgList *next) {
+    ArgList *arg = (ArgList *)malloc(sizeof(ArgList));
+    arg->expr = expr;
+    arg->next = next;
+    return arg;
+}
+
+int param_list_count(ParamList *params) {
+    int count = 0;
+    while (params) {
+        count++;
+        params = params->next;
+    }
+    return count;
+}
+
+int arg_list_count(ArgList *args) {
+    int count = 0;
+    while (args) {
+        count++;
+        args = args->next;
+    }
+    return count;
+}
+
+void param_list_free(ParamList *params) {
+    while (params) {
+        ParamList *next = params->next;
+        free(params->name);
+        free(params);
+        params = next;
+    }
+}
+
+void arg_list_free(ArgList *args) {
+    while (args) {
+        ArgList *next = args->next;
+        ast_free(args->expr);
+        free(args);
+        args = next;
+    }
+}
+
 void ast_free(ASTNode *node) {
     if (!node) return;
 
@@ -99,6 +174,16 @@ void ast_free(ASTNode *node) {
         ast_free(node->data.for_loop.body);
     } else if (node->type == AST_PRINT) {
         ast_free(node->data.print_value);
+    } else if (node->type == AST_FUNCTION_DEF) {
+        free(node->data.function_def.name);
+        param_list_free(node->data.function_def.params);
+        ast_free(node->data.function_def.body);
+    } else if (node->type == AST_FUNCTION_CALL) {
+        free(node->data.function_call.name);
+        arg_list_free(node->data.function_call.args);
+    } else if (node->type == AST_GLOBAL_VAR) {
+        free(node->data.global_var.name);
+        ast_free(node->data.global_var.value);
     }
 
     free(node);
