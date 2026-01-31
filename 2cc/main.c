@@ -5,6 +5,7 @@
 #include "codegen.h"
 #include "ast.h"
 #include "symtab.h"
+#include "sema.h"
 
 extern void yy_scan_string(const char *str);
 extern ASTNode *root;
@@ -51,6 +52,14 @@ int main(int argc, char **argv) {
                 symtab_free(global_symtab);
                 return 1;
             }
+        }
+
+        // Perform semantic analysis
+        int errors = sema_check(root);
+        if (errors > 0) {
+            ast_free(root);
+            symtab_free(global_symtab);
+            return 1;
         }
 
         // Collect global variables

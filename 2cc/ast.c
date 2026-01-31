@@ -33,6 +33,14 @@ ASTNode* ast_assignment(char *name, ASTNode *value) {
     return node;
 }
 
+ASTNode* ast_var_decl(char *name, ASTNode *value) {
+    ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
+    node->type = AST_VAR_DECL;
+    node->data.var_decl.name = strdup(name);
+    node->data.var_decl.value = value;
+    return node;
+}
+
 ASTNode* ast_return(ASTNode *value) {
     ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
     node->type = AST_RETURN;
@@ -159,6 +167,9 @@ void ast_free(ASTNode *node) {
     } else if (node->type == AST_ASSIGNMENT) {
         free(node->data.assignment.name);
         ast_free(node->data.assignment.value);
+    } else if (node->type == AST_VAR_DECL) {
+        free(node->data.var_decl.name);
+        ast_free(node->data.var_decl.value);
     } else if (node->type == AST_RETURN) {
         ast_free(node->data.return_value);
     } else if (node->type == AST_SEQUENCE) {

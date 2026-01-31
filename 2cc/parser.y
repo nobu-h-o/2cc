@@ -24,7 +24,7 @@ extern SymbolTable *global_symtab;
 %token NUMBER
 %token IDENTIFIER
 %token ASSIGN SEMICOLON COMMA
-%token RETURN WHILE FOR PRINT
+%token INT RETURN WHILE FOR PRINT
 %token ADD SUB MUL DIV
 %token LPAREN RPAREN LBRACE RBRACE
 %token LT GT LE GE EQ NE
@@ -54,13 +54,13 @@ toplevel_item:
     | global_decl { $$ = $1; };
 
 function_def:
-    IDENTIFIER LPAREN param_list_opt RPAREN LBRACE statements RBRACE {
-        $$ = ast_function_def($1, $3, $6);
+    INT IDENTIFIER LPAREN param_list_opt RPAREN LBRACE statements RBRACE {
+        $$ = ast_function_def($2, $4, $7);
     };
 
 global_decl:
-    IDENTIFIER ASSIGN expr SEMICOLON {
-        $$ = ast_global_var($1, $3);
+    INT IDENTIFIER ASSIGN expr SEMICOLON {
+        $$ = ast_global_var($2, $4);
     };
 
 param_list_opt:
@@ -68,11 +68,11 @@ param_list_opt:
     | param_list { $$ = $1; };
 
 param_list:
-    IDENTIFIER {
-        $$ = param_list_create($1, NULL);
+    INT IDENTIFIER {
+        $$ = param_list_create($2, NULL);
     }
-    | IDENTIFIER COMMA param_list {
-        $$ = param_list_create($1, $3);
+    | INT IDENTIFIER COMMA param_list {
+        $$ = param_list_create($2, $4);
     };
 
 arg_list_opt:
@@ -94,6 +94,9 @@ statements:
 statement:
     IDENTIFIER ASSIGN expr SEMICOLON {
         $$ = ast_assignment($1, $3);
+    }
+    | INT IDENTIFIER ASSIGN expr SEMICOLON {
+        $$ = ast_var_decl($2, $4);
     }
     | RETURN expr SEMICOLON { $$ = ast_return($2); }
     | PRINT LPAREN expr RPAREN SEMICOLON { $$ = ast_print($3); }

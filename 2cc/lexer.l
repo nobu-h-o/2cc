@@ -7,6 +7,8 @@
 %}
 
 %%
+"int"       { return INT; }
+"if"        { return IF; }
 "return"    { return RETURN; }
 "while"     { return WHILE; }
 "for"       { return FOR; }

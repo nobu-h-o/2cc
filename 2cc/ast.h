@@ -6,6 +6,7 @@ typedef enum {
     AST_BINARY_OP,
     AST_VARIABLE,
     AST_ASSIGNMENT,
+    AST_VAR_DECL,
     AST_RETURN,
     AST_SEQUENCE,
     AST_WHILE,
@@ -59,6 +60,10 @@ typedef struct ASTNode {
             char *name;
             struct ASTNode *value;
         } assignment;
+        struct {
+            char *name;
+            struct ASTNode *value;
+        } var_decl;
         struct ASTNode *return_value;
         struct {
             struct ASTNode *first;
@@ -95,6 +100,7 @@ ASTNode* ast_number(int value);
 ASTNode* ast_binary(BinaryOp op, ASTNode *left, ASTNode *right);
 ASTNode* ast_variable(char *name);
 ASTNode* ast_assignment(char *name, ASTNode *value);
+ASTNode* ast_var_decl(char *name, ASTNode *value);
 ASTNode* ast_return(ASTNode *value);
 ASTNode* ast_sequence(ASTNode *first, ASTNode *second);
 ASTNode* ast_while(ASTNode *condition, ASTNode *body);

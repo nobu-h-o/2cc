@@ -385,6 +385,10 @@ void codegen_from_ast(ASTNode *node) {
             codegen_global_var(node->data.global_var.name,
                              node->data.global_var.value);
             break;
+        case AST_VAR_DECL:
+            // Variable declaration with initialization - same as assignment
+            codegen_assignment(node->data.var_decl.name, node->data.var_decl.value);
+            break;
     }
 }
 

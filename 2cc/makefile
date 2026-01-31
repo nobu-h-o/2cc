@@ -2,11 +2,14 @@ CC=gcc
 CFLAGS=-Wall
 TARGET=2cc
 
-2cc: parser.tab.o lex.yy.o main.o codegen.o ast.o symtab.o
-	$(CC) $(CFLAGS) -o 2cc parser.tab.o lex.yy.o main.o codegen.o ast.o symtab.o
+2cc: parser.tab.o lex.yy.o main.o codegen.o ast.o symtab.o sema.o
+	$(CC) $(CFLAGS) -o 2cc parser.tab.o lex.yy.o main.o codegen.o ast.o symtab.o sema.o
 
-main.o: main.c parser.h parser.tab.h codegen.h ast.h symtab.h
+main.o: main.c parser.h parser.tab.h codegen.h ast.h symtab.h sema.h
 	$(CC) $(CFLAGS) -c main.c
+
+sema.o: sema.c sema.h ast.h
+	$(CC) $(CFLAGS) -c sema.c
 
 codegen.o: codegen.c codegen.h ast.h symtab.h
 	$(CC) $(CFLAGS) -c codegen.c
